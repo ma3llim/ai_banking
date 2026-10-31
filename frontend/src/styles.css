@@ -390,6 +390,36 @@ th {
   justify-content: flex-end;
 }
 
+.dropzone {
+  border-style: dashed;
+}
+.dropzone.dragging {
+  border-color: var(--primary);
+  background: #eff6ff;
+}
+.file-picker {
+  flex-direction: row;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--surface);
+  cursor: pointer;
+  overflow: hidden;
+}
+.file-picker input {
+  /* Hidden but still focusable/clickable via the label */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.file-picker span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .badge.info {
   background: #dbeafe;
   color: #1d4ed8;

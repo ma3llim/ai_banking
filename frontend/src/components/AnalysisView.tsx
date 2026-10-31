@@ -159,38 +159,6 @@ export function AnalysisView({ report }: { report: AnalysisReport }) {
         </section>
       )}
 
-      {report.transactions.length > 0 && (
-        <details className="card">
-          <summary>
-            <strong>All {report.transactions.length} transactions analysed</strong>
-          </summary>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Description</th>
-                  <th>Category</th>
-                  <th className="num">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {report.transactions.map((t, i) => (
-                  <tr key={i}>
-                    <td>{shortDate(t.date)}</td>
-                    <td>{t.merchant && t.merchant !== t.description ? `${t.description} · ${t.merchant}` : t.description}</td>
-                    <td>{t.category}</td>
-                    <td className={t.type === 'CREDIT' ? 'num credit' : 'num'}>
-                      {t.type === 'CREDIT' ? '+' : '−'}
-                      {formatGBP(t.amount)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </details>
-      )}
     </div>
   );
 }

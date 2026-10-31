@@ -9,7 +9,8 @@ export async function extractText(buffer: Buffer, extension: string): Promise<st
 
   let text: string;
   try {
-    const pdf = await getDocumentProxy(new Uint8Array(buffer));
+    // verbosity 0 = errors only: we only read text, so pdf.js's missing-font-data warnings don't apply.
+    const pdf = await getDocumentProxy(new Uint8Array(buffer), { verbosity: 0 });
     ({ text } = await extractPdfText(pdf, { mergePages: true }));
   } catch {
     throw new HttpError(400, 'Could not read this PDF. Is the file valid?');

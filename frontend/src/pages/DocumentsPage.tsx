@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type DragEvent, type FormEvent } from 'react';
 import { api, formatDate } from '../api';
 import { Notice, useAction } from '../components/Notice';
 import { AnalysisView } from '../components/AnalysisView';
@@ -15,6 +15,7 @@ export function DocumentsPage() {
   const [docType, setDocType] = useState<DocTypeChoice>('AUTO');
   const [analysis, setAnalysis] = useState<{ doc: BankDocument; report: AnalysisReport } | null>(null);
   const [analyzingId, setAnalyzingId] = useState<number | null>(null);
+  const [dragging, setDragging] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const analysisRef = useRef<HTMLDivElement>(null);
 
@@ -23,6 +24,25 @@ export function DocumentsPage() {
   useEffect(() => {
     run(load);
   }, [load]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A file dropped outside the upload card would make the browser try to open file:/// (blocked
+  // by Firefox with a security error). Swallow stray drops while this page is open.
+  useEffect(() => {
+    const block = (e: Event) => e.preventDefault();
+    window.addEventListener('dragover', block);
+    window.addEventListener('drop', block);
+    return () => {
+      window.removeEventListener('dragover', block);
+      window.removeEventListener('drop', block);
+    };
+  }, []);
+
+  const onDrop = (e: DragEvent<HTMLElement>) => {
+    e.preventDefault();
+    setDragging(false);
+    const dropped = e.dataTransfer.files?.[0];
+    if (dropped) setFile(dropped);
+  };
 
   const analyze = (doc: BankDocument, refresh = false) => {
     setAnalyzingId(doc.id);
@@ -69,15 +89,26 @@ export function DocumentsPage() {
 
       <Notice notice={notice} />
 
-      <section className="card">
+      <section
+        className={dragging ? 'card dropzone dragging' : 'card dropzone'}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={onDrop}
+      >
         <h3>Upload document</h3>
         <form className="row wrap" onSubmit={submit}>
-          <input
-            ref={fileInput}
-            type="file"
-            accept=".pdf,.txt,.md"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
+          <label className="file-picker">
+            <input
+              ref={fileInput}
+              type="file"
+              accept=".pdf,.txt,.md"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            />
+            <span>{file ? file.name : 'Choose a file or drop it here'}</span>
+          </label>
           <select value={docType} onChange={(e) => setDocType(e.target.value as DocTypeChoice)} aria-label="Document type">
             <option value="AUTO">Type: auto-detect</option>
             <option value="GENERAL">Type: general document</option>
