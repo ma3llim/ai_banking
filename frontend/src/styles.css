@@ -367,9 +367,78 @@ th {
   flex: 1;
 }
 
+/* Section header with actions on the right */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.section-header h3 {
+  margin: 0;
+}
+.row.tight {
+  margin-top: 0;
+  flex-wrap: wrap;
+}
+.row.tight > * {
+  flex: 0 0 auto;
+}
+.row.end {
+  justify-content: flex-end;
+}
+
+.badge.info {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Analysis */
+.analysis {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 12px 0 20px;
+}
+.summary-card {
+  background: #f8fafc;
+}
+.headline {
+  margin: 6px 0 0;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+.grid.two-equal {
+  grid-template-columns: 1fr 1fr;
+}
+.bullets {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  line-height: 1.45;
+}
+.chart-tooltip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+details.card summary {
+  cursor: pointer;
+}
+details.card[open] summary {
+  margin-bottom: 8px;
+}
+
 @media (max-width: 900px) {
   .grid,
-  .grid.two {
+  .grid.two,
+  .grid.two-equal {
     grid-template-columns: 1fr;
   }
 }

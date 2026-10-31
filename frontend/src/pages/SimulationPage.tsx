@@ -2,7 +2,10 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api, formatDate, formatGBP } from '../api';
 import { useAuth } from '../auth';
 import { Notice, useAction } from '../components/Notice';
-import type { Card, Transaction, Transfer, User } from '../types';
+import { AnalysisView } from '../components/AnalysisView';
+import type { AnalysisReport, Card, Transaction, Transfer, User } from '../types';
+
+const currentMonth = () => new Date().toISOString().slice(0, 7);
 
 const DEMO_PURCHASES = [
   { merchant: 'Tesco', description: 'Groceries', min: 8, max: 80 },
@@ -13,10 +16,13 @@ const DEMO_PURCHASES = [
   { merchant: 'Boots', description: 'Pharmacy', min: 3, max: 40 },
 ];
 
-export function PosPage() {
+export function SimulationPage() {
   const { user: me, refresh } = useAuth();
   const isAdmin = me!.role === 'ADMIN';
   const { notice, busy, run } = useAction();
+  const analysisAction = useAction();
+  const [month, setMonth] = useState(currentMonth);
+  const [report, setReport] = useState<AnalysisReport | null>(null);
 
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState(me!.id);
@@ -47,6 +53,14 @@ export function PosPage() {
   useEffect(() => {
     run(load);
   }, [load]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // An analysis belongs to one user and month; clear it when either changes.
+  useEffect(() => setReport(null), [selectedUserId, month]);
+
+  const analyze = () =>
+    analysisAction.run(async () => {
+      setReport(await api<AnalysisReport>(`/analysis/monthly?userId=${selectedUserId}&month=${month}`));
+    });
 
   useEffect(() => {
     if (isAdmin) api<User[]>('/users').then(setUsers).catch(() => setUsers([]));
@@ -102,8 +116,8 @@ export function PosPage() {
     <div className="page">
       <header className="page-header">
         <div>
-          <h2>POS Simulation</h2>
-          <p className="muted">Create cards, simulate card payments and pay other users. All data is dummy.</p>
+          <h2>Simulation</h2>
+          <p className="muted">Create cards, simulate card payments, pay other users and analyse monthly spending. All data is dummy.</p>
         </div>
         {isAdmin && (
           <label className="inline">
@@ -207,7 +221,23 @@ export function PosPage() {
       </div>
 
       <section className="card">
-        <h3>Recent transactions</h3>
+        <div className="section-header">
+          <h3>Recent transactions</h3>
+          <div className="row tight">
+            <input
+              type="month"
+              aria-label="Month to analyse"
+              value={month}
+              max={currentMonth()}
+              onChange={(e) => setMonth(e.target.value || currentMonth())}
+            />
+            <button className="primary" onClick={analyze} disabled={analysisAction.busy}>
+              {analysisAction.busy ? 'Analysing…' : 'Analyze month'}
+            </button>
+          </div>
+        </div>
+        <Notice notice={analysisAction.notice} />
+        {report && <AnalysisView report={report} />}
         <div className="table-wrap">
           <table>
             <thead>

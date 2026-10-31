@@ -73,6 +73,7 @@ async function main() {
         fileType: 'md',
         text: fs.readFileSync(path.join(__dirname, 'seed-docs', doc.file), 'utf8'),
         visibility: doc.visibility,
+        docType: 'GENERAL',
         uploadedById: doc.ownerId,
       });
       console.log(`Ingested ${doc.file} (${doc.visibility})`);

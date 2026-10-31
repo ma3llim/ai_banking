@@ -45,8 +45,20 @@ npm install
 npm run dev                         # http://localhost:5173 (calls the backend at VITE_API_URL, default http://localhost:4000)
 ```
 
-Pages: **POS Simulation** (cards, card transactions, "Simulate random purchase", Pay to, history),
-**Test Users** (admin: create users), **Documents** (upload .txt/.md for RAG), **AI Assistant** (chat).
+Pages: **Simulation** (cards, card transactions, "Simulate random purchase", Pay to, history, **Analyze month**),
+**Test Users** (admin: create users), **Documents** (upload .pdf/.txt/.md for RAG; statements can be analysed), **AI Assistant** (chat).
+
+## Spending analysis
+
+- **Analyze month** (Simulation page): totals, spending by category, daily spending (Recharts) and an AI expert
+  summary (headline, insights, recommendations) for the chosen month. Figures are calculated in code; the model only
+  writes the commentary from them.
+- **Statements** (Documents page): on upload each file is classified as `GENERAL` (indexed for the assistant only) or
+  `STATEMENT` (also analysable). Choose "auto-detect" or set the type yourself. Analysing a statement extracts its
+  transactions with the model, then shows the same report. Results are cached; "Re-run" refreshes them.
+- Sample PDFs to try: [docs/samples/alice-statement-october-2026.pdf](docs/samples/alice-statement-october-2026.pdf)
+  (statement) and [docs/samples/easy-saver-guide.pdf](docs/samples/easy-saver-guide.pdf) (general).
+- PDFs need selectable text; scanned images are not OCR'd.
 
 ## API
 
@@ -65,8 +77,10 @@ All routes except `/auth/login` need `Authorization: Bearer <token>`.
 | GET | /transactions | `?cardId&type&from&to&limit&userId` |
 | POST | /transfers | Pay to: `{ toUsername, amount, description? }` |
 | GET | /transfers | Sent and received |
-| POST | /documents | multipart `file` (.txt/.md) + `visibility: PUBLIC\|PRIVATE` |
-| GET | /documents | Docs visible to you |
+| POST | /documents | multipart `file` (.pdf/.txt/.md, ≤10 MB) + `visibility: PUBLIC\|PRIVATE` + `docType: AUTO\|GENERAL\|STATEMENT` |
+| GET | /documents | Docs visible to you (with `docType`, `analyzedAt`) |
+| POST | /documents/:id/analyze | Statement analysis (cached; `?refresh=true` re-runs) |
+| GET | /analysis/monthly | `?month=YYYY-MM&userId` (defaults: current month, yourself) → stats + AI expert summary |
 | POST | /chat | `{ message, history? }` → `{ answer, toolsUsed, sources }` |
 
 ## Access rules

@@ -8,6 +8,7 @@ import { transactionRouter } from "./controllers/transaction.controller";
 import { transferRouter } from "./controllers/transfer.controller";
 import { documentRouter } from "./controllers/document.controller";
 import { chatRouter } from "./controllers/chat.controller";
+import { analysisRouter } from "./controllers/analysis.controller";
 import { errorHandler } from "./middleware/error";
 
 export const app = express();
@@ -26,5 +27,6 @@ app.use("/transactions", transactionRouter);
 app.use("/transfers", transferRouter);
 app.use("/documents", documentRouter);
 app.use("/chat", chatRouter);
+app.use("/analysis", analysisRouter);
 
 app.use(errorHandler);

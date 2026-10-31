@@ -39,6 +39,11 @@ enum Visibility {
   PRIVATE
 }
 
+enum DocumentType {
+  GENERAL // FAQs, policies, letters: indexed for the assistant only
+  STATEMENT // bank/card statements: can also be analysed
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   username     String   @unique
@@ -112,10 +117,16 @@ model Document {
   fileName     String     @map("file_name")
   fileType     String     @map("file_type")
   // PUBLIC: visible to every user. PRIVATE: only the uploader (and admins).
-  visibility   Visibility @default(PRIVATE)
+  visibility   Visibility   @default(PRIVATE)
+  docType      DocumentType @default(GENERAL) @map("doc_type")
+  // Full extracted text, kept so statements can be analysed later.
+  content      String?
+  // Cached statement analysis (see analysis.service.ts).
+  analysis     Json?
+  analyzedAt   DateTime?    @map("analyzed_at")
   metadata     Json?
-  uploadedById Int        @map("uploaded_by")
-  createdAt    DateTime   @default(now()) @map("created_at")
+  uploadedById Int          @map("uploaded_by")
+  createdAt    DateTime     @default(now()) @map("created_at")
 
   uploadedBy User            @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
   chunks     DocumentChunk[]
