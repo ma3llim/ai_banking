@@ -1,0 +1,140 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum CardType {
+  DEBIT
+  CREDIT
+}
+
+enum CardStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum TransactionType {
+  DEBIT
+  CREDIT
+}
+
+enum TransferStatus {
+  COMPLETED
+  FAILED
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  email        String   @unique
+  role         Role     @default(USER)
+  balance      Decimal  @default(0) @db.Decimal(12, 2)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  cards             Card[]
+  transactions      Transaction[]
+  sentTransfers     Transfer[]    @relation("TransferFrom")
+  receivedTransfers Transfer[]    @relation("TransferTo")
+  documents         Document[]
+
+  @@map("users")
+}
+
+model Card {
+  id         Int        @id @default(autoincrement())
+  userId     Int        @map("user_id")
+  cardNumber String     @unique @map("card_number")
+  cardType   CardType   @default(DEBIT) @map("card_type")
+  status     CardStatus @default(ACTIVE)
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("cards")
+}
+
+model Transaction {
+  id          Int             @id @default(autoincrement())
+  userId      Int             @map("user_id")
+  cardId      Int?            @map("card_id")
+  type        TransactionType
+  amount      Decimal         @db.Decimal(12, 2)
+  description String
+  merchant    String?
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card Card? @relation(fields: [cardId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@map("transactions")
+}
+
+model Transfer {
+  id          Int            @id @default(autoincrement())
+  fromUserId  Int            @map("from_user_id")
+  toUserId    Int            @map("to_user_id")
+  amount      Decimal        @db.Decimal(12, 2)
+  description String?
+  status      TransferStatus @default(COMPLETED)
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  fromUser User @relation("TransferFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("TransferTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@map("transfers")
+}
+
+model Document {
+  id           Int        @id @default(autoincrement())
+  fileName     String     @map("file_name")
+  fileType     String     @map("file_type")
+  // PUBLIC: visible to every user. PRIVATE: only the uploader (and admins).
+  visibility   Visibility @default(PRIVATE)
+  metadata     Json?
+  uploadedById Int        @map("uploaded_by")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  uploadedBy User            @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  chunks     DocumentChunk[]
+
+  @@map("documents")
+}
+
+model DocumentChunk {
+  id         Int                         @id @default(autoincrement())
+  documentId Int                         @map("document_id")
+  chunkIndex Int                         @map("chunk_index")
+  chunkText  String                      @map("chunk_text")
+  // Written and queried with raw SQL (see rag.service.ts); Prisma can't handle vector columns.
+  embedding  Unsupported("vector(768)")?
+  metadata   Json?
+  createdAt  DateTime                    @default(now()) @map("created_at")
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@map("document_chunks")
+}
