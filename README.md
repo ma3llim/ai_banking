@@ -45,6 +45,9 @@ npm install
 npm run dev                         # http://localhost:5173 (calls the backend at VITE_API_URL, default http://localhost:4000)
 ```
 
+Routes (React Router): `/login`, `/simulation` (home), `/users` (admin only), `/documents`, `/chat`; unknown URLs show a 404 page.
+Logged-out visitors are sent to `/login` and returned to the page they asked for after signing in.
+
 Pages: **Simulation** (cards, card transactions, "Simulate random purchase", Pay to, history, **Analyze month**),
 **Test Users** (admin: create users), **Documents** (upload .pdf/.txt/.md for RAG; statements can be analysed), **AI Assistant** (chat).
 
