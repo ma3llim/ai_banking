@@ -66,10 +66,20 @@ button:disabled {
   opacity: 0.6;
   cursor: default;
 }
-button.primary {
+button.primary,
+a.button.primary {
   background: var(--primary);
   border-color: var(--primary);
   color: var(--primary-text);
+}
+/* A link that looks like a button */
+a.button {
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 button.link {
   border: none;
@@ -118,9 +128,10 @@ label.inline {
   gap: 4px;
 }
 .nav-item {
-  text-align: left;
-  background: none;
-  border: none;
+  display: block;
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-decoration: none;
   color: var(--sidebar-text);
 }
 .nav-item.active,

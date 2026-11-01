@@ -1,6 +1,9 @@
 import { useState, type FormEvent } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { Notice, useAction } from '../components/Notice';
+import type { LoginRedirectState } from '../components/RouteGuards';
+import { HOME, paths } from '../paths';
 
 const DEMO_LOGINS = [
   { username: 'admin', password: 'admin123' },
@@ -9,10 +12,18 @@ const DEMO_LOGINS = [
 ];
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { user, loading, login } = useAuth();
+  const location = useLocation();
   const { notice, busy, run } = useAction();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+
+  if (loading) return <div className="center muted">Loading…</div>;
+  // Once signed in (or if already signed in), go back to the page that was requested.
+  if (user) {
+    const from = (location.state as LoginRedirectState | null)?.from;
+    return <Navigate to={from && from !== paths.login ? from : HOME} replace />;
+  }
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -22,7 +33,7 @@ export function LoginPage() {
   return (
     <div className="center">
       <form className="card login" onSubmit={submit}>
-        <h1>AI Banking POC</h1>
+        <h1>AI Banking</h1>
         <p className="muted">Demo environment — dummy data only.</p>
         <label>
           Username
